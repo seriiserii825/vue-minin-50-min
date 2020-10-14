@@ -2,12 +2,12 @@
   <div id="app">
     <h1>Todo application</h1>
     <hr>
-    <AddTodo @addTodo="addTodo"></AddTodo>
+    <AddTodo @addTodo="addTodo"/>
     <hr>
     <TodoList
-        :todos="todos"
-        @removeTodo="removeTodo"
-    ></TodoList>
+      :todos="todos"
+      @removeTodo="removeTodo"
+    />
   </div>
 </template>
 
@@ -19,25 +19,47 @@ export default {
   name: 'App',
   data () {
     return {
-      todos: [
-        {id: 1, title: 'Buy bread', completed: false},
-        {id: 2, title: 'Buy milk', completed: false},
-        {id: 3, title: 'Buy meal', completed: false}
-      ]
+      todos: [],
+      resource: null,
+      resourceDelete: null
     }
   },
   methods: {
     removeTodo (id) {
-      this.todos = this.todos.filter(item => id !== item.id)
+      this.resourceDelete.delete({id: id})
+        .then(response => {
+          console.log('deleted ' + id)
+        })
     },
     addTodo (newTodo) {
-      // console.log(newTodo)
-      this.todos.push(newTodo)
+      if (newTodo.title !== '') {
+        this.resource.save(newTodo)
+          .then(response => response.json())
+          .then(todos => {
+            console.log(todos)
+          })
+      }
+    },
+    loadResource () {
+      this.resource.get()
+        .then(response => response.json())
+        .then(todos => {
+          this.todos = todos
+        })
     }
   },
   components: {
     AddTodo,
     TodoList
+  },
+  created () {
+    this.resource = this.$resource('todos')
+    this.loadResource()
+  },
+  updated () {
+    this.resource = this.$resource('todos')
+    this.resourceDelete = this.$resource('todos{/id}')
+    this.loadResource()
   }
 }
 </script>
